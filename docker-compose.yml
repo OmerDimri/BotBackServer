@@ -1,0 +1,16 @@
+version: '2.3'
+
+services:
+  main_bot:
+    build: .
+    environment:
+      PYTHONUNBUFFERED: 1
+      DJANGO_SETTINGS_MODULE: BotBackServer.settings
+      DB_IP: host.docker.internal
+      API_KEY: cfwehHfGWSpEO1wikDgh24OLJwNly9c5fQEoNvWsKmS4ehOM5HRMYuiJQekwjgrj
+      SECRET_KEY: J93zbZ9oKdXjPLmsCuUbrjI1GgsS1gXWvoFYBPdNLljs32H6ntDbKGbKx8riZQGC
+    container_name: DB_Server
+    restart: on-failure
+    ports:
+      - "5432:5432"
+      - "8002:8002"
