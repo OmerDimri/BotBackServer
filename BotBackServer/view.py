@@ -15,7 +15,7 @@ from src.utils.mode_singelton import ModeSingleton
 
 mode_object = ModeSingleton()
 
-
+#HERE
 def check(request):
     return HttpResponse("OK")
 
