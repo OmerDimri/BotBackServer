@@ -46,3 +46,5 @@ Werkzeug==2.2.2
 XlsxWriter==3.0.3
 yarg==0.1.9
 yarl==1.8.2
+cachetools
+swifter

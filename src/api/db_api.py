@@ -7,8 +7,10 @@ import pandas as pd
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, FLOAT, and_, Date, DateTime, update, delete
 from sqlalchemy import insert, select
 import numpy as np
+import swifter
 from sqlalchemy.testing import in_, eq_regex
 
+from configuration.my_logger import logger
 from src.api.binance_api import Binance
 from src.constant import FULL_KEYS_DICT
 from src.utils.generic_utils import get_relevant_price_list, add_transaction_df_to_live
@@ -35,12 +37,12 @@ mode_object = ModeSingleton()
 
 def get_table(table_name):
     mode = mode_object.get_mode()
-    if mode == "development":
-        engine = engine_dev
+    if mode == "staging":
+        engine = engine_stg
     elif mode == "production":
         engine = engine_prd
     else:
-        engine = engine_stg
+        engine = engine_dev
     engine.connect()
     metadata = MetaData(engine)
     metadata.reflect(bind=engine)
@@ -49,9 +51,9 @@ def get_table(table_name):
 
 def convert_date_columns_to_str(df):
     if "start_date" in df.columns:
-        df["start_date_timestamp"] = df.apply(lambda row: row.start_date.value, axis=1)
+        df["start_date_timestamp"] = df.swifter.apply(lambda row: row.start_date.value, axis=1)
     if "end_date" in df.columns:
-        df["end_date_timestamp"] = df.apply(lambda row: row.end_date.value, axis=1)
+        df["end_date_timestamp"] = df.swifter.apply(lambda row: row.end_date.value, axis=1)
     return df
 
 
@@ -593,7 +595,7 @@ def create_statiscs_strategy_df(position_df):
     ).reset_index()
     headers = ["name", "id", "symbols", "intervals", "positions", "duration", "profit", "win_percent", "profit_factor", "fees", "average_change",
                "min_leverage", "max_leverage", "json_format"]
-    print("Create Statistics Has been Done!")
+    logger.info("Create Statistics Has been Done!")
     return result_df, headers
 
 
@@ -647,7 +649,7 @@ def create_statiscs_strategy_coin(position_df):
         max_leverage=('max_leverage', 'max'),
     ).reset_index()
     headers = ["symbol", "positions", "duration", "profit", "win_percent", "profit_factor", "fees", "average_change", "min_leverage", "max_leverage"]
-    print("Create Statistics Has been Done!")
+    logger.info("Create Statistics Has been Done!")
     return result_df, headers
 
 
@@ -712,7 +714,7 @@ def create_statiscs_hour_date(position_df):
     ).reset_index()
     result_df = result_df.sort_values(by=["delta_time"])
     headers = ["delta_time", "day", "hour", "symbols", "positions", "duration", "profit", "win_percent", "profit_factor", "fees", "average_change", "min_leverage", "max_leverage"]
-    print("Create Statistics Has been Done!")
+    logger.info("Create Statistics Has been Done!")
     return result_df, headers
 
 

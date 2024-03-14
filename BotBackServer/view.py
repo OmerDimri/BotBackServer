@@ -1,21 +1,24 @@
-import configparser
-import datetime
 import json
-import logging
+import json
 import mimetypes
 import os
 
+import pandas as pd
 from django.http import HttpResponse, Http404
 from rest_framework.decorators import api_view
+
+from configuration.my_logger import logger
 from src.api.binance_api import get_future_balance_update, get_future_open_positions
 from src.api.db_api import get_dynamic_records_data, get_position_data, get_strategy_data, get_platform_data, get_live_positions_from_db, \
     delte_all_platform_ref, get_live_manually_operation_from_db, create_statiscs_strategy_df, create_statiscs_strategy_coin, create_statiscs_hour_date
-from src.utils.generic_utils import get_bars_per_position_live, get_relevant_price_list, get_bars_per_position_done
+from src.constant import custom_serializer
+from src.pages.position_records import get_position_and_basic_analysis, graph_function_to_type
+from src.utils.generic_utils import get_bars_per_position_live, get_bars_per_position_done
 from src.utils.mode_singelton import ModeSingleton
 
 mode_object = ModeSingleton()
 
-#HERE
+
 def check(request):
     return HttpResponse("OK")
 
@@ -39,6 +42,29 @@ def get_db_dynamic(request):
         return Http404(f"Bad Request : {e}")
 
     return HttpResponse(answer_as_json, content_type="application/json")
+
+
+@api_view(['POST'])
+def position_records(request):
+    logger.info("Position Records Start")
+    data_dict = request.data
+    mode_object.set_mode(data_dict["mode"])
+    answer_as_dict = get_position_and_basic_analysis(data_dict["query"], data_dict["refresh"]).copy()
+    logger.info("Got Basic Analyze")
+    graph_interval = data_dict.get("graph_interval")
+    graph_type = data_dict.get("graph_type")
+    graph_by = data_dict.get("graph_by")
+    only_graph = data_dict.get("only_graph", False)
+    logger.info("Got Graph Time")
+    if graph_by and graph_type and graph_interval:
+        answer_as_dict["graph_data"] = graph_function_to_type[graph_type](answer_as_dict["positions"], graph_interval, graph_by)
+    for key, value in answer_as_dict.items():
+        if isinstance(value, pd.DataFrame):
+            answer_as_dict[key] = value.to_dict("records")
+    if only_graph:
+        answer_as_dict = {"graph_data":answer_as_dict["graph_data"]}
+    final_answer = json.dumps(answer_as_dict, default=custom_serializer)
+    return HttpResponse(final_answer, content_type="application/json")
 
 
 @api_view(['POST'])

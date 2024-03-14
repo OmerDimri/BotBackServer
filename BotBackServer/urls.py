@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', view.check, name='check'),
     path('get_db_dynamic', view.get_db_dynamic, name='get_db_dynamic'),
+    path('position_records', view.position_records, name='position_records'),
     path('get_csv_records', view.get_csv_records, name='get_csv_records'),
     path('get_live_positions', view.get_live_positions, name='get_live_positions'),
     path('get_poistion_analyze', view.get_poistion_analyze, name='get_poistion_analyze'),
